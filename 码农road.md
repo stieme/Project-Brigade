@@ -71,39 +71,39 @@ func main() {
 package main
 
 import (
-	"fmt"
-	"math"
+    "fmt"
+    "math"
 )
 
 type Abser interface {
-	Abs() float64
+    Abs() float64
 }
 
 func main() {
-	var a Abser
-	f := MyFloat(-math.Sqrt2)
-	v := Vertex{3, 4}
+    var a Abser
+    f := MyFloat(-math.Sqrt2)
+    v := Vertex{3, 4}
 
-	a = f  // a MyFloat 实现了 Abser
-	a = &v // a *Vertex 实现了 Abser
-	fmt.Println(a.Abs())
+    a = f  // a MyFloat 实现了 Abser
+    a = &v // a *Vertex 实现了 Abser
+    fmt.Println(a.Abs())
 }
 
 type MyFloat float64
 
 func (f MyFloat) Abs() float64 {
-	if f < 0 {
-		return float64(-f)
-	}
-	return float64(f)
+    if f < 0 {
+        return float64(-f)
+    }
+    return float64(f)
 }
 
 type Vertex struct {
-	X, Y float64
+    X, Y float64
 }
 
 func (v *Vertex) Abs() float64 {
-	return math.Sqrt(v.X*v.X + v.Y*v.Y)
+    return math.Sqrt(v.X*v.X + v.Y*v.Y)
 }
 
 ```
@@ -120,36 +120,36 @@ package main
 import "fmt"
 
 type I interface {
-	M()
+    M()
 }//接口
 
 type T struct {
-	S string
+    S string
 }//T类型结构体
 
 func (t *T) M() {
-	if t == nil {
-		fmt.Println("<nil>")
-		return
-	}
-	fmt.Println(t.S)
+    if t == nil {
+        fmt.Println("<nil>")
+        return
+    }
+    fmt.Println(t.S)
 }//此时空指针异常，M（）方法处理
 
 func main() {
-	var i I
+    var i I
 
-	var t *T
-	i = t
-	describe(i)
-	i.M()
+    var t *T
+    i = t
+    describe(i)
+    i.M()
 
-	i = &T{"hello"}
-	describe(i)
-	i.M()
+    i = &T{"hello"}
+    describe(i)
+    i.M()
 }
 
 func describe(i I) {
-	fmt.Printf("(%v, %T)\n", i, i)
+    fmt.Printf("(%v, %T)\n", i, i)
 }
 
 运行结果：
@@ -169,11 +169,7 @@ hello
 
 <mark>：interface{}空接口，可以保存任何类型的值，也可以用来处理未知类型的值</mark>
 
-
-
-
-
-
+//测试
 
 
 
