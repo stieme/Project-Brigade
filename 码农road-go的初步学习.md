@@ -1,6 +1,6 @@
-2024.7.15---Go指南：
+##### 2024.7.15---Go指南：
 
-**方法（带接收者参数的函数）**
+###### 1.方法（带接收者参数的函数）
 
 ```
 package main
@@ -63,7 +63,7 @@ func main() {
 
 
 
-**接口（interface）**
+###### 2.接口（interface）
 
 <mark>：作为一组方法签名</mark>
 
@@ -201,7 +201,7 @@ func main() {
 
 
 
-**fmt包中最普遍接口之一----Stringer**
+###### 3.fmt包中最普遍接口之一----Stringer
 
 ```
 package main
@@ -230,7 +230,7 @@ func main() {
 
 
 
-**fmt中，内接接口error类型：（类似于Stringer接口）**
+###### 4.fmt中，内接接口error类型：（类似于Stringer接口）
 
 ```
 package main
@@ -269,7 +269,7 @@ func main() {
 
 
 
-**io包中Reader接口：表示数据流读取端，在Go标准库中，文件，网络连接等都会实现此接口**
+###### 5.io包中Reader接口：表示数据流读取端，在Go标准库中，文件，网络连接等都会实现此接口
 
 ```
 package main
@@ -307,7 +307,7 @@ b[:n] = ""
 
 ****
 
-**类型参数：func Index[T comparable](s []T, x T) int**
+###### 6.类型参数：func Index[T comparable](s []T, x T) int
 
 ```
 package main
@@ -342,7 +342,7 @@ func main() {
 
 <mark>：Index函数适用于任何支持比较的类型。可以使用==和!=运算符，用comparable约束将值和所有切片元素进行比较，直到找到匹配项</mark>
 
-**类型联合约束**
+###### 7.类型联合约束
 
 ```
 package main
@@ -368,7 +368,7 @@ func main() {
 
 
 
-**Go协程**
+###### 8.Go协程
 
 ```
 package main
@@ -397,7 +397,7 @@ func main() {
 
 
 
-**信道：带有类型的管道**
+###### 9.信道：带有类型的管道
 
 **ch<-v：将v发送至信道ch**
 
@@ -438,31 +438,31 @@ func main() {
 
     
 
-**range与close：**
+###### 10.range与close：
 
 ```
 package main
 
 import (
-	"fmt"
+    "fmt"
 )
 
 func fibonacci(n int, c chan int) {
-	x, y := 0, 1
-	for i := 0; i < n; i++ {
-		c <- x
-		x, y = y, x+y
-	}
-	close(c)//主动关闭信道
+    x, y := 0, 1
+    for i := 0; i < n; i++ {
+        c <- x
+        x, y = y, x+y
+    }
+    close(c)//主动关闭信道
 }
 
 func main() {
-	c := make(chan int, 10)
-	go fibonacci(cap(c), c)//go关键字开启goroutine，cap（c）-容量
+    c := make(chan int, 10)
+    go fibonacci(cap(c), c)//go关键字开启goroutine，cap（c）-容量
         //不断从c信道获值
-	for i := range c {
-		fmt.Println(i)
-	}
+    for i := range c {
+        fmt.Println(i)
+    }
 }
 
 
@@ -470,7 +470,7 @@ func main() {
 
 
 
-**select语句：**
+###### 11.select语句：
 
 <mark>：一个Go程等待多个通信操作</mark>
 
@@ -480,29 +480,29 @@ package main
 import "fmt"
 
 func fibonacci(c, quit chan int) {
-	x, y := 0, 1
+    x, y := 0, 1
                                                      //无限循环的for
-	for {
-		select {
-		case c <- x:                         
-			x, y = y, x+y
-		case <-quit:                         //如果quit接收到值，终止循环
-			fmt.Println("quit")
-			return
-		}
-	}
+    for {
+        select {
+        case c <- x:                         
+            x, y = y, x+y
+        case <-quit:                         //如果quit接收到值，终止循环
+            fmt.Println("quit")
+            return
+        }
+    }
 }
 
 func main() {
-	c := make(chan int)
-	quit := make(chan int)
-	go func() {
-		for i := 0; i < 10; i++ {
-			fmt.Println(<-c)
-		}
-		quit <- 0
-	}()
-	fibonacci(c, quit)//开始创建斐波那契数列
+    c := make(chan int)
+    quit := make(chan int)
+    go func() {
+        for i := 0; i < 10; i++ {
+            fmt.Println(<-c)
+        }
+        quit <- 0
+    }()
+    fibonacci(c, quit)//开始创建斐波那契数列
 }
 
 
@@ -516,29 +516,27 @@ func main() {
 package main
 
 import (
-	"fmt"
-	"time"
+    "fmt"
+    "time"
 )
 
 func main() {
-	tick := time.Tick(100 * time.Millisecond)//每隔100ms打印一次
-	boom := time.After(500 * time.Millisecond)//500ms后打印
-	for {
-		select {
-		case <-tick:
-			fmt.Println("tick.")
-		case <-boom:
-			fmt.Println("BOOM!")
-			return
-		default:
-			fmt.Println("    .")
-			time.Sleep(50 * time.Millisecond)
+    tick := time.Tick(100 * time.Millisecond)//每隔100ms，发送一个时间值，打印一次
+    boom := time.After(500 * time.Millisecond)//500ms发送时间值，后打印
+    for {
+        select {
+        case <-tick:
+            fmt.Println("tick.")
+        case <-boom:
+            fmt.Println("BOOM!")
+            return
+        default:
+            fmt.Println("    .")
+            time.Sleep(50 * time.Millisecond)
                    //每隔50ms打印一次，前提是tick与boom都没有准备好
-		}
-	}
+        }
+    }
 }
 
 
 ```
-
-
