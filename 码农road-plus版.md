@@ -286,4 +286,183 @@ func reverseBetween(head *ListNode, left int, right int) *ListNode {
 
 <img title="" src="https://code-thinking.cdn.bcebos.com/pics/24.%E4%B8%A4%E4%B8%A4%E4%BA%A4%E6%8D%A2%E9%93%BE%E8%A1%A8%E4%B8%AD%E7%9A%84%E8%8A%82%E7%82%B9-%E9%A2%98%E6%84%8F.jpg" alt="24.两两交换链表中的节点-题意" style="zoom:50%;" data-align="left">
 
+###### 方法一：普遍
+
+```
+func swapPairs(head *ListNode) *ListNode {
+    dummy := &ListNode{Next: head} // 用哨兵节点简化代码逻辑
+    node0 := dummy
+    node1 := head
+    for node1 != nil && node1.Next != nil { // 至少有两个节点
+        node2 := node1.Next//2
+        node3 := node2.Next//3
+
+        node0.Next = node2 // 0 -> 2
+        node2.Next = node1 // 2 -> 1
+        node1.Next = node3 // 1 -> 3
+
+        node0 = node1 // 下一轮交换，0 是 1
+        node1 = node3 // 下一轮交换，1 是 3
+    }
+    return dummy.Next // 返回新链表的头节点
+}
+
+
+```
+
+
+
+![](https://pic.leetcode.cn/1691121590-SWAYuj-lc24-c.png)
+
+###### 方法二：递归
+
+```
+unc swapPairs(head *ListNode) *ListNode {
+    if head == nil || head.Next == nil {
+        return head
+    }
+
+    node1 := head                 //1       3
+    node2 := head.Next            //2       4
+    node3 := node2.Next           //3       nil
+
+    node1.Next = swapPairs(node3) // 1 指向递归返回的链表头        1 指向 4
+    node2.Next = node1            // 2 指向 1                   4 指向 3
+
+    return node2 // 返回交换后的链表头节点                         
+}
+
+
+```
+
+
+
+###### 若是k个节点一组进行反转？
+
+：给你链表的头节点 `head` ，每 `k` 个节点一组进行翻转，请你返回修改后的链表。
+
+`k` 是一个正整数，它的值小于或等于链表的长度。如果节点总数不是 `k` 的整数倍，那么请将最后剩余的节点保持原有顺序。
+
+你不能只是单纯的改变节点内部的值，而是需要实际进行节点交换。
+
+```灵茶山艾府
+func reverseKGroup(head *ListNode, k int) *ListNode {
+    n := 0
+    for cur := head; cur != nil; cur = cur.Next {
+        n++ // 统计节点个数
+    }
+
+    dummy := &ListNode{Next: head}
+    p0 := dummy
+    var pre, cur *ListNode = nil, p0.Next
+    for ; n >= k; n -= k {
+        for i := 0; i < k; i++ {
+            nxt := cur.Next// 2
+            cur.Next = pre // 1->nil
+            pre = cur//1
+            cur = nxt//2
+        }
+
+        nxt := p0.Next//1
+        p0.Next.Next = cur//1->4
+        p0.Next = pre//dummy->3
+        p0 = nxt//1
+
+    }
+    return dummy.Next
+}
+//这个还是要画图解决，直观清晰
+```
+
+
+
+### 6.链表相交：
+
+例：
+
+给你两个单链表的头节点 headA 和 headB ，请你找出并返回两个单链表相交的起始节点。如果两个链表没有交点，返回 null 。
+
+![20211219221657](https://code-thinking-1253855093.file.myqcloud.com/pics/20211219221657.png)
+
+###### 双指针
+
+```双指针
+func getIntersectionNode(headA, headB *ListNode) *ListNode {
+    l1,l2 := headA, headB
+    for l1 != l2 {
+        if l1 != nil {
+            l1 = l1.Next
+        } else {
+            l1 = headB
+        }
+
+        if l2 != nil {
+            l2 = l2.Next
+        } else {
+            l2 = headA
+        }
+    }
+
+    return l1
+}
+```
+
+**双指针证明：**
+
+*情况一：两个链表相交*
+
+*链表 headA 和 headB 的长度分别是 m 和 n。假设链表 headA 的不相交部分有 a 个节点，链表 headB 的不相交部分有 b 个节点，两个链表相交的部分有 c 个节点，则有 a+c=m，b+c=n。*
+
+*如果 a=b，则两个指针会同时到达两个链表相交的节点，此时返回相交的节点；*
+
+*如果 a!=b，则指针 pA 会遍历完链表 headA，指针 pB 会遍历完链表 headB，两个指针不会同时到达链表的尾节点，然后指针 pA 移到链表 headB 的头节点，指针 pB 移到链表 headA 的头节点，然后两个指针继续移动，在指针 pA 移动了 a+c+b 次、指针 pB 移动了 b+c+a 次之后，两个指针会同时到达两个链表相交的节点，该节点也是两个指针第一次同时指向的节点，此时返回相交的节点。*
+
+**
+
+*情况二：两个链表不相交*
+
+*链表 headA 和 headB 的长度分别是 m 和 n。考虑当 m=n 和 m!=n 时，两个指针分别会如何移动：*
+
+*如果 m=n，则两个指针会同时到达两个链表的尾节点，然后同时变成空值 null，此时返回 null；*
+
+*如果 m!=n，则由于两个链表没有公共节点，两个指针也不会同时到达两个链表的尾节点，因此两个指针都会遍历完两个链表，在指针 pA 移动了 m+n 次、指针 pB 移动了 n+m 次之后，两个指针会同时变成空值 null，此时返回 null。*
+
+
+
+<mark>：我们很清晰地知道，若两链表长度不同，则其中一个链表超过另一个链表的部分绝对不会有相交节点，因此，我们可以忽略超出部分节点</mark>
+
+
+
+### 7.环形链表II:
+
+例：
+
+给定一个链表的头节点  `head` ，返回链表开始入环的第一个节点。 _如果链表无环，则返回 `null`
+
+![circularlinkedlist](https://assets.leetcode.com/uploads/2018/12/07/circularlinkedlist.png)
+
+###### <mark>：利用快慢指针fast与slow</mark>
+
+###### <mark>：fast指针一定先进入环中，如果fast指针和slow指针相遇的话，一定是在环中相遇，这是毋庸置疑的。</mark>
+
+<mark>：**从头结点出发一个指针，从<u>相遇节点 </u>也出发一个指针，这两个指针每次只走一个节点， 那么当这两个指针相遇的时候就是 环形入口的节点**。</mark>
+
+```
+func detectCycle(head *ListNode) *ListNode {
+    slow, fast := head, head
+    for fast != nil && fast.Next != nil {
+        slow = slow.Next                 //慢指针前进一步
+        fast = fast.Next.Next            //快指针前进两步
+        if slow == fast {                //如果相遇了
+            for slow != head {           //相遇节点和头节点各出发一个指针
+                slow = slow.Next         
+                head = head.Next
+            }
+            return head                  //此时head就为环形入口节点
+        }
+    }
+    return nil
+}
+```
+
 
