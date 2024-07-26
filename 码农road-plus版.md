@@ -28,7 +28,7 @@
 
 以下是go的基本模板：
 
-```
+```go
 type ListNode struct {
     Val int
     Next *ListNode
@@ -53,7 +53,7 @@ type ListNode struct {
 
 
 
-```
+```go
 func removeElements(head *ListNode, val int) *ListNode {
     dummyHead := &ListNode{}
     dummyHead.Next = head
@@ -87,7 +87,7 @@ func removeElements(head *ListNode, val int) *ListNode {
   
   
 
-```
+```go
 package main
 
 import (
@@ -214,7 +214,7 @@ func (list *MyLinkedList) printLinkedList() {
 
 <mark>：采用双指针或递归的思想</mark>
 
-```
+```go
 func reverseList(head *ListNode) *ListNode {
     var pre *ListNode
     cur := head
@@ -230,7 +230,7 @@ func reverseList(head *ListNode) *ListNode {
 
 递归：
 
-```
+```go
 func reverseList(head *ListNode) *ListNode {
     return help(nil, head)
 }
@@ -254,7 +254,7 @@ func help(pre, head *ListNode)*ListNode{
 
 ![rev2ex2](https://assets.leetcode.com/uploads/2021/02/19/rev2ex2.jpg)
 
-```
+```go
 func reverseBetween(head *ListNode, left int, right int) *ListNode {
     dummy := &ListNode{Next: head}                          //创建虚拟头
     p0 := dummy
@@ -288,7 +288,7 @@ func reverseBetween(head *ListNode, left int, right int) *ListNode {
 
 ###### 方法一：普遍
 
-```
+```go
 func swapPairs(head *ListNode) *ListNode {
     dummy := &ListNode{Next: head} // 用哨兵节点简化代码逻辑
     node0 := dummy
@@ -316,7 +316,7 @@ func swapPairs(head *ListNode) *ListNode {
 
 ###### 方法二：递归
 
-```
+```go
 unc swapPairs(head *ListNode) *ListNode {
     if head == nil || head.Next == nil {
         return head
@@ -345,7 +345,7 @@ unc swapPairs(head *ListNode) *ListNode {
 
 你不能只是单纯的改变节点内部的值，而是需要实际进行节点交换。
 
-```灵茶山艾府
+```go
 func reverseKGroup(head *ListNode, k int) *ListNode {
     n := 0
     for cur := head; cur != nil; cur = cur.Next {
@@ -386,7 +386,7 @@ func reverseKGroup(head *ListNode, k int) *ListNode {
 
 ###### 双指针
 
-```双指针
+```go
 func getIntersectionNode(headA, headB *ListNode) *ListNode {
     l1,l2 := headA, headB
     for l1 != l2 {
@@ -447,7 +447,7 @@ func getIntersectionNode(headA, headB *ListNode) *ListNode {
 
 <mark>：**从头结点出发一个指针，从<u>相遇节点 </u>也出发一个指针，这两个指针每次只走一个节点， 那么当这两个指针相遇的时候就是 环形入口的节点**。</mark>
 
-```
+```GO
 func detectCycle(head *ListNode) *ListNode {
     slow, fast := head, head
     for fast != nil && fast.Next != nil {
@@ -464,5 +464,3 @@ func detectCycle(head *ListNode) *ListNode {
     return nil
 }
 ```
-
-

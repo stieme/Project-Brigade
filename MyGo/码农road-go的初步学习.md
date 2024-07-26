@@ -2,7 +2,7 @@
 
 ###### 1.方法（带接收者参数的函数）
 
-```
+```go
 package main
 
 import (
@@ -29,7 +29,7 @@ func main() {
 
 <mark>：type Myfloat float64，给float64添加别名Myfloat</mark>
 
-```
+```go
 package main
 
 import (
@@ -67,7 +67,7 @@ func main() {
 
 <mark>：作为一组方法签名</mark>
 
-```
+```go
 package main
 
 import (
@@ -114,7 +114,7 @@ Realize：接口就是方法的集合，对于其他类型，像是Myfloat，Ver
 
 
 
-```
+```go
 package main
 
 import "fmt"
@@ -173,7 +173,7 @@ hello
 
 
 
-```类型断言
+```go
 package main
 
 import "fmt"
@@ -203,7 +203,7 @@ func main() {
 
 ###### 3.fmt包中最普遍接口之一----Stringer
 
-```
+```go
 package main
 
 import "fmt"
@@ -232,7 +232,7 @@ func main() {
 
 ###### 4.fmt中，内接接口error类型：（类似于Stringer接口）
 
-```
+```go
 package main
 
 import (
@@ -271,7 +271,7 @@ func main() {
 
 ###### 5.io包中Reader接口：表示数据流读取端，在Go标准库中，文件，网络连接等都会实现此接口
 
-```
+```go
 package main
 
 import (
@@ -309,7 +309,7 @@ b[:n] = ""
 
 ###### 6.类型参数：func Index[T comparable](s []T, x T) int
 
-```
+```go
 package main
 
 import "fmt"
@@ -344,7 +344,7 @@ func main() {
 
 ###### 7.类型联合约束
 
-```
+```go
 package main
 
 import "fmt"
@@ -370,7 +370,7 @@ func main() {
 
 ###### 8.Go协程
 
-```
+```go
 package main
 
 import (
@@ -407,7 +407,7 @@ func main() {
 
 **FIFO:先进先出原则**
 
-```
+```go
 package main
 
 import "fmt"
@@ -440,7 +440,7 @@ func main() {
 
 ###### 10.range与close：
 
-```
+```go
 package main
 
 import (
@@ -474,7 +474,7 @@ func main() {
 
 <mark>：一个Go程等待多个通信操作</mark>
 
-```
+```go
 package main
 
 import "fmt"
@@ -512,7 +512,7 @@ func main() {
 
 <mark>：当 `select` 中的其它分支都没有准备好时，`default` 分支就会执行。</mark>
 
-```
+```go
 package main
 
 import (
