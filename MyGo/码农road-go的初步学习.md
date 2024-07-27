@@ -267,9 +267,63 @@ func main() {
 
 <mark>：go语言中处理错误的重要方式，可以自定义错误类型，自定义打印错误发生时间，错误代码等等，简单，好用，强大！</mark>
 
+<mark>：err := errors.New("something went wrong")，error.New创建错误实例，接受字符串为参数，error.New() 在每次调用时都会返回一个新的错误值，即使它们具有相同的错误消息。</mark>
 
+<mark>：if errors.Is(err, someSpecificError) { }，error.Is检测两错误是否相同</mark>
 
-###### 5.io包中Reader接口：表示数据流读取端，在Go标准库中，文件，网络连接等都会实现此接口
+<mark>：error.As()用于将error转换为具体error类型</mark>
+
+```go
+type MyError struct {
+    Msg string
+}
+
+func (e *MyError) Error() string {
+    return e.Msg
+}
+
+var MoneyNotEnough = &MyError{Msg: "余额不足"}
+
+func pay(money float64) error {
+    if money < 10 {
+        return MoneyNotEnough//假使这里传出啥HerError啥的，转换不成功，打印“不是此error类型”
+    }
+    return nil
+}
+
+func main() {
+    err := pay(5)
+    var myError *MyError
+    if errors.As(err, &myError) {
+        fmt.Println("转换成功")
+        fmt.Println(myError.Error())
+    } else {
+        fmt.Println("不是此error类型")
+    }
+}
+```
+
+另一种错误处理：panic
+
+```go
+func main() {
+    //使用匿名函数 将需要保护的代码 控制在一定范围
+    func() {
+        err := pay(5)
+        defer func() {
+            if err := recover(); err != nil {//recover函数捕获panic，使之程序继续运行，recover函数只在defer调用函数中有用
+                log.Printf("panic:%+v \n", err)
+            }
+        }()
+        if err != nil {
+            panic("余额不足")//panic触发，defer函数调用
+        }
+    }()
+    fmt.Println("发生panic后 这里的代码依旧会执行")
+}
+```
+
+###### 5.io包-Reader接口：表示数据流读取端，在Go标准库中，文件，网络连接等都会实现此接口<读取器>
 
 ```go
 package main
@@ -282,10 +336,10 @@ import (
 
 func main() {
     r := strings.NewReader("Hello, Reader!")
-        //使用 strings.NewReader 创建一个 Reader，它将字符串 "Hello, Reader!" 作为数据源。
-    b := make([]byte, 8)
+        //使用 strings.NewReader 创建一个 Reader，它将字符串 "Hello, Reader!" 作为数据源。
+    b := make([]byte, 8)//字节切片，容量为八
     for {
-        n, err := r.Read(b)
+        n, err := r.Read(b)//调用Read方法开始读取
         fmt.Printf("n = %v err = %v b = %v\n", n, err, b)
         fmt.Printf("b[:n] = %q\n", b[:n])
         if err == io.EOF {
@@ -304,6 +358,31 @@ b[:n] = ""
 ```
 
 <mark>：func (T) Read(b []byte) (n int, err error)，接口的Read方法</mark>
+
+读取文件示例：
+
+```go
+func readFile(path string) {
+    file, err := os.Open(path)//打开path路径的文件
+    if err != nil {           //发生错误，不为空，则终止程序，记录错误
+        log.Fatal(err)          
+    }
+    //注意关闭文件流
+    defer file.Close()      //关闭文件读取
+    buff := make([]byte, 1024)//创建字节切片
+    for {
+        n, err := file.Read(buff)//读取
+        if err != nil {//发生错误
+            if err == io.EOF {//读到文件末尾
+                fmt.Println("读完了")
+                break
+            }
+            log.Fatal(err)//否则终止，记录错误
+        }
+        fmt.Printf("读取到的内容:%v \n ", string(buff[:n]))
+    }
+}
+```
 
 ****
 
@@ -540,3 +619,310 @@ func main() {
 
 
 ```
+
+
+
+###### 12.defer:
+
+<mark>:go语言中，一个特殊的关键字，用于延迟调用</mark>
+
+```go
+func main() {
+    x := 10
+    defer func(x int) {
+        //打印10 因为x传参时，值为10
+        fmt.Println("我后执行：", x)
+    }(x)
+    x++
+    fmt.Println("我先执行：", x)
+    deferTest()
+    return
+}
+func deferTest() {
+    var a = 1
+    //输出1
+    defer fmt.Println(a)
+    a = 2
+    return
+}
+
+结果：
+我先执行： 11
+1
+我后执行： 10
+```
+
+<mark>：延迟函数的参数在defer语句出现时已经确认</mark>
+
+<mark>：延迟函数按后进先出执行，即先出现的defer最后执行</mark>
+
+<mark>：延迟函数可以操作主函数的具体返回值</mark>
+
+```go
+func main() {
+    x := deferTest()//调用函数
+    fmt.Println(x)//打印
+}
+func deferTest() (result int) {//命名返回值result，类型为int
+    i := 1//初始化为1
+    defer func() {//延迟函数，当返回i后执行操作，使得result返回值+1
+        result++
+    }()
+    return i//返回
+}
+```
+
+<mark>：如果defer执行的函数为nil，那么会在最终调用函数产生panic</mark>
+
+###### 13.time包：
+
+<秒值，毫秒值>
+
+```go
+func main() {
+    //当前的时间
+    t := time.Now()
+    //毫秒值
+    milli := t.UnixMilli()
+    //秒值
+    sencond := t.Unix()
+    fmt.Printf("毫秒值:%d, 秒值:%d \n", milli, sencond)
+}
+```
+
+<时间相加相减>
+
+```go
+func main() {
+    //当前的时间
+    t := time.Now()
+    fmt.Println(t.Format("2006-01-02 15:04:05"))//format函数将时间格式化，“2006-01-02 15：04：05”作为模板
+    after20s := t.Add(20 * time.Second)
+    fmt.Println(after20s.Format("2006-01-02 15:04:05"))
+    sub := after20s.Sub(t)//sub()函数计算时间差值
+    fmt.Printf("相减时间:%v \n", sub)
+}
+```
+
+<休眠>
+
+```go
+func main() {
+    //阻塞当前的go程x时间，x<=0时立即 释放
+    time.Sleep(2 * time.Second)
+    fmt.Println("等2秒打印出来")
+}
+```
+
+<经过一段时间返回>
+
+```go
+func main() {
+    ch := make(chan struct{})
+    go wait(ch)
+    select {
+    case <-ch:
+        fmt.Println("wait执行成功")
+    case <-time.After(2 * time.Second)://由于休眠时间大于2s,执行以下操作
+        fmt.Println("wait等待时间已经超过2秒，超时了")
+    }
+}
+
+func wait(ch chan struct{}) {
+    time.Sleep(3 * time.Second)//休眠时间为3s
+    ch <- struct{}{}
+}
+```
+
+###### 14.io包-Write<写入器>，从缓冲区读取数据，并将数据写入目标资源。
+
+：只要实现了Writer(p []byte),那就是一个写入器
+
+```go
+func writeFile(content string) {
+    file, err := os.Create("./test.txt")// 新建文件
+    if err != nil {                     //错误处理
+        fmt.Println(err)
+        return
+    }
+    defer file.Close()                  //无论函数如何结束，关闭文件
+    _, err = file.Write([]byte(content))//将content字符串转换为字节切片，并写入到文件中。这里使用下划线_来忽略写入的字节数。
+    if err != nil {                     //错误处理
+        return
+    }
+}
+
+```
+
+
+
+###### 15.io包-Seeker
+
+<mark>：入参：计算新偏移量的起始值 whence， 基于whence的偏移量offset</mark>
+
+<mark>：返回值：基于 whence 和 offset 计算后新的偏移量值，以及可能产生的错误</mark>
+
+```go
+type Seeker interface {
+    //用于指定下次读取或者写入时的偏移量
+    Seek(offset int64, whence int) (int64, error)
+}
+const (
+    SeekStart   = 0 // 基于文件开始位置
+    SeekCurrent = 1 // 基于当前偏移量 
+    SeekEnd     = 2 // 基于文件结束位置
+)
+```
+
+| os.O_WRONLY | 只写   |
+| ----------- | ---- |
+| os.O_CREATE | 创建文件 |
+| os.O_RDONLY | 只读   |
+| os.O_RDWR   | 读写   |
+| os.O_TRUNC  | 清空   |
+| os.O_APPEND | 追加   |
+
+```go
+func writeFile(content string) {
+    // w写 r读 x执行   w  2   r  4   x  1
+    //特殊权限位，拥有者位，同组用户位，其余用户位
+  file, err := os.OpenFile("./test.txt", os.O_RDWR, 655)
+//参数：打开文件；打开模式；权限控制
+	if err != nil {      //处理错误信息
+		fmt.Println(err)
+		return
+	}
+	defer file.Close()   //确保函数结束时，关闭文件
+	_, err = file.Seek(4, io.SeekStart)//用Seek方法将文件指针移动到文件开始的第5个字节（偏移量为4）。io.SeekStart表示从文件开头开始计算偏移量。
+	if err != nil {
+		log.Fatal(err)
+	}
+	_, err = file.Write([]byte(content))
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+```
+
+![](file:///C:/Users/%E6%99%93/Pictures/Saved%20Pictures/QQ20240727-101338.png)
+
+###### 16.文件操作API：
+
+- 根据提供的文件名创建新的文件，返回一个文件对象，默认权限是0666
+
+```go
+ func Create(name string) (file *File, err Error)
+```
+
+- 根据文件描述符创建相应的文件，返回一个文件对象
+
+```go
+func NewFile(fd uintptr, name string) *File
+```
+
+- 只读方式打开一个名称为name的文件
+
+```go
+ func Open(name string) (file *File, err Error)
+```
+
+- 打开名称为name的文件，flag是打开的方式，只读、读写等，perm是权限
+
+```go
+ func OpenFile(name string, flag int, perm uint32) (file *File, err Error)
+```
+
+- 写入byte类型的信息到文件
+
+```go
+func (file *File) Write(b []byte) (n int, err Error)
+```
+
+- 在指定位置开始写入byte类型的信息
+
+```go
+ func (file *File) WriteAt(b []byte, off int64) (n int, err Error)
+```
+
+- 写入string信息到文件
+
+```go
+ func (file *File) WriteString(s string) (ret int, err Error)
+```
+
+- 读取数据到b中
+
+```go
+ func (file *File) Read(b []byte) (n int, err Error)
+```
+
+- 从off开始读取数据到b中
+
+```go
+ func (file *File) ReadAt(b []byte, off int64) (n int, err Error)
+```
+
+- 删除文件名为name的文件
+
+```go
+ func Remove(name string) Error
+```
+
+###### 17.bufio包:
+
+<mark>：提供缓冲区，读，写都在缓冲区中，降低访问本地磁盘次数，从而提高效率</mark>
+
+* `bufio.Reader`：代表一个带缓冲的读取器，允许从输入流中按行或字节块读取数据。
+* `bufio.Writer`：代表一个带缓冲的写入器，允许将数据写入输出流并控制何时执行实际的写入操作。
+
+![76266afe17e808dfffab5b924e0d0146](https://i-blog.csdnimg.cn/blog_migrate/76266afe17e808dfffab5b924e0d0146.png)
+
+```go
+package main
+
+import (
+	"bufio"
+	"fmt"
+	"strings"
+)
+
+func main() {
+	s := strings.NewReader("ABCDEFG")//创建Reader对象s
+	str := strings.NewReader("12345")//创建Reader对象str
+	br := bufio.NewReader(s)
+//使用bufio.NewReader包装了s，创建了一个bufio.Reader对象br，它可以用来读取数据，并且提供了一些额外的读取功能，比如缓冲。
+	b, _ := br.ReadString('\n')//从br中读取数据，直到遇到换行符，这里没有，将读取所有数据，忽略错误
+	fmt.Println(b)
+	br.Reset(str)              //将br读取源重置为str
+	b, _ = br.ReadString('\n')
+	fmt.Println(b)
+}
+
+
+```
+
+###### 18.ioutil工具：
+
+* ioutil库包含在io目录下，它的主要作用是`作为一个工具包`，里面有一些比较实用的函数
+* 比如 `ReadAll(从某个源读取数据)`、`ReadFile（读取文件内容）`、`WriteFile（将数据写入文件）`、`ReadDir（获取目录）`。
+
+```go
+func wr() {
+   err := ioutil.WriteFile("./yyy.txt", []byte("码神之路"), 0666)//“码神之路”转为字节切片写入文件中，权限设置为可读写无执行
+   if err != nil {                                              //错误信息处理
+      fmt.Println(err) 
+      return
+   }
+}
+
+func re() {
+   content, err := ioutil.ReadFile("./yyy.txt")                 //读取文件内容
+   if err != nil {                                              //处理错误信息
+      fmt.Println(err)
+      return
+   }
+   fmt.Println(string(content))
+}
+```
+
+<mark><网路编程><context包>，请移步：[context包 | 码神之路知识体系 (mszlu.com)](https://www.mszlu.com/go/new/base/18/18.html#_1-%E5%88%9B%E5%BB%BA%E6%A0%B9context)</mark>
