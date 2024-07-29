@@ -1,4 +1,4 @@
-##### 链表：
+## 一.链表：
 
 ### 1.链表类型：
 
@@ -464,3 +464,51 @@ func detectCycle(head *ListNode) *ListNode {
     return nil
 }
 ```
+
+
+
+
+
+## 二. 哈希表：
+
+#### 1.哈希表理论基础：
+
+<mark>：哈希表是根据关键码的值而直接进行访问的数据结构。</mark>
+
+**哈希函数；哈希碰撞-拉链法<链表>；哈希碰撞-线性探测法；**
+
+**常见三大哈希结构：数组，集合set，映射map**
+
+<mark>：当我们遇到了要快速判断一个元素是否出现集合里的时候，就要考虑哈希法。但是哈希法也是**牺牲了空间换取了时间**，因为我们要使用额外的数组，set或者是map来存放数据，才能实现快速的查找。</mark>
+
+
+
+#### 2.有效的字母异位词：
+
+例：
+
+给定两个字符串 s 和 t ，编写一个函数来判断 t 是否是 s 的字母异位词。
+
+示例 1: 输入: s = "anagram", t = "nagaram" 输出: true
+
+示例 2: 输入: s = "rat", t = "car" 输出: false
+
+**说明:** 你可以假设字符串只包含小写字母。
+
+```go
+func isAnagram(s string, t string) bool {
+    record := [26]int{}
+    
+    for _, r := range s {            //索引-/-值
+        record[r-rune('a')]++
+    }
+    for _, r := range t {
+        record[r-rune('a')]--
+    }
+
+    return record == [26]int{}
+     return true
+}
+```
+
+
