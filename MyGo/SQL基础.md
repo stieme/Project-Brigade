@@ -423,4 +423,205 @@ SELECT sid, sname, age FROM stu;
 
 ###### 1.GROUP BY子句
 
+![](file:///C:/Users/%E6%99%93/Pictures/Saved%20Pictures/QQ20240730-084436.png)
+
+
+
+###### 2.HAVING子句：
+
+例：
+
+查询工资总和大于 9000 的部门编号以及工资和：
+
+```sql
+SELECT deptno, SUM(sal)
+FROM emp
+GROUP BY deptno
+HAVING SUM(sal) > 9000;
+
+```
+
+<mark>：WHERE 是对分组前记录的条件，如果某行记录没有满足 WHERE 子句的条件，那么这行记录不会参加分组；而 HAVING 是对分组后数据的约束。</mark>
+
+
+
+##### 8.LIMIT：
+
+<mark>：用来限定查询结果的起始行，以及总行数。</mark>
+
+问：查询 5 行记录，起始行从 0 开始？ 
+`SELECT * FROM emp LIMIT 0, 5;`  
+
+<mark>注意，起始行从 0 开始，即第一行开始！</mark>
+
+问：查询 10 行记录，起始行从 3 开始  
+`SELECT * FROM emp LIMIT 3, 10;`
+
+
+
+##### 9.多表连接查询：
+
+<mark>：表连接分为内连接和外连接。</mark>
+
+例：以下是员工表staff和职位表deptno
+
+![在这里插入图片描述](https://i-blog.csdnimg.cn/blog_migrate/e0bf72e9dfa5b37b10f006ac924f7083.png)
+
+
+
+###### 内连接：
+
+<mark>SELECT staff.name,deptname from staff,deptno WHRER staff.name=deptname;</mark>
+
+![在这里插入图片描述](https://i-blog.csdnimg.cn/blog_migrate/940682d2dd405b0ef63bb3e7b6b3ec30.png)
+
+
+
+###### 外连接(左)：
+
+<mark>SELECT staff.name,deptname FROM staff LEFT JOIN deptno ON staff.name=deptno.name;</mark>
+
+<mark>左连接：包含左边表中所有的记录，右边表中没有匹配的记录显示为 NULL。</mark>
+
+![在这里插入图片描述](https://i-blog.csdnimg.cn/blog_migrate/be03e6df75790cb77c7182615ef96fe3.png)
+
+
+
+###### 外连接(右)：
+
+<mark>SELECT deptname,deptno.name FROM staff RIGHT JOIN deptno ON deptno.name=staff.name;</mark>
+
+<mark>右连接：包含右边表中所有的记录，左边表中没有匹配的记录显示为 NULL。</mark>
+
+![在这里插入图片描述](https://i-blog.csdnimg.cn/blog_migrate/2654cb499226bcef74c5c62f436199e2.png)
+
+
+
+### 六.补充基础语法：
+
+##### 1.条件分支：CASE WHEN
+
+**例：**
+
+**假设有一个学生表 `student`，包含以下字段：`name`（姓名）、`age`（年龄）。请你编写一个 SQL 查询，将学生按照年龄划分为三个年龄等级（age_level）：60 岁以上为 "老同学"，20 岁以上（不包括 60 岁以上）为 "年轻"，20 岁以下为 "小同学"。返回结果应包含学生的姓名（name）和年龄等级（age_level），并按姓名升序排序。**
+
+```sql
+SELECT name,                           //这个逗号利于理解 ^_^
+CASE WHEN (age>60) THEN '老同学'
+WHEN (age>20) THEN '年轻'
+ELSE '小同学' END AS age_level
+FROM student
+ORDER BY name ASC;
+```
+
+
+
+##### 2.字符串处理：
+
+<mark>UPPER:转换为大写</mark>
+
+<mark>LOWER:转换为小写</mark>
+
+<mark>LENGTH:计算长度</mark>
+
+**例：**
+
+**假设有一个学生表 `student`，包含以下字段：`id`（学号）、`name`（姓名）。请你编写一个 SQL 查询，筛选出姓名为 '热dog' 的学生，展示其学号（id）、姓名（name）及其大写姓名（upper_name）。**
+
+```sql
+SELECT id,name,UPPER(name) AS upper_name
+FROM student
+WHERE name='热dog';
+```
+
+
+
+##### 3.关联查询:
+
+###### 1.CROSS JOIN:
+
+<mark>`CROSS JOIN` 是一种简单的关联查询，不需要任何条件来匹配行，它直接将左表的 **每一行** 与右表的 **每一行** 进行组合，返回的结果是两个表的笛卡尔积。</mark>
+
+**例：**
+
+**假设有一个学生表 `student` ，包含以下字段：id（学号）、name（姓名）、age（年龄）、class_id（班级编号）；还有一个班级表 `class` ，包含以下字段：id（班级编号）、name（班级名称）。**
+
+**请你编写一个 SQL 查询，将学生表和班级表的所有行组合在一起，并返回学生姓名（student_name）、学生年龄（student_age）、班级编号（class_id）以及班级名称（class_name）。**
+
+```sql
+SELECT s.name AS student_name,
+s.age AS student_age,
+s.class_id AS class_id,
+c.name AS class_name
+FROM student s            //别名，简化语句
+CROSS JOIN class c;       //别名，简化语句
+```
+
+
+
+###### 2.INNER JOIN:
+
+<mark>INNER JOIN 只返回两个表中满足关联条件的交集部分，即在两个表中都存在的匹配行。</mark>
+
+**例：**
+
+**假设有一个学生表 `student`，包含以下字段：`id`（学号）、`name`（姓名）、`age`（年龄）、`class_id`（班级编号）。还有一个班级表 `class`，包含以下字段：`id`（班级编号）、`name`（班级名称）、`level`（班级级别）。**
+
+**请你编写一个 SQL 查询，根据学生表和班级表之间的班级编号进行匹配，返回学生姓名（`student_name`）、学生年龄（`student_age`）、班级编号（`class_id`）、班级名称（`class_name`）、班级级别（`class_level`）。**
+
+```sql
+SELECT s.name student_name,
+s.age student_age,
+s.class_id class_id,
+c.name class_name,
+c.level class_level
+FROM student s
+INNER JOIN class c ON s.class_id = c.id;
+```
+
+
+
+###### 3.OUTER JOIN:
+
+<mark>OUTER JOIN 是一种关联查询方式，它根据指定的关联条件，将两个表中满足条件的行组合在一起，并 **包含没有匹配的行** 。</mark>
+
+<mark>:LEFT OUTER JOIN 和 RIGHT OUTER JOIN</mark>
+
+**例：**
+
+**假设有一个学生表 `student`，包含以下字段：`id`（学号）、`name`（姓名）、`age`（年龄）、`class_id`（班级编号）。还有一个班级表 `class`，包含以下字段：`id`（班级编号）、`name`（班级名称）、`level`（班级级别）。**
+
+**请你编写一个 SQL 查询，根据学生表和班级表之间的班级编号进行匹配，返回学生姓名（`student_name`）、学生年龄（`student_age`）、班级编号（`class_id`）、班级名称（`class_name`）、班级级别（`class_level`），要求必须返回所有学生的信息（即使对应的班级编号不存在）。**
+
+```sql
+SELECT s.name student_name,
+s.age student_age,
+s.class_id class_id,
+c.name class_name,
+c.level class_level
+FROM student s
+LEFT OUTER JOIN class c ON s.class_id=c.id; 
+```
+
+
+
+##### 4.子查询：(**)
+
+<mark>子查询是指在一个查询语句内部 **嵌套** 另一个完整的查询语句，内层查询被称为子查询。子查询可以用于获取更复杂的查询结果或者用于过滤数据。</mark>
+
+**例：**
+
+**假设有一个学生表 `student`，包含以下字段：`id`（学号）、`name`（姓名）、`age`（年龄）、`score`（分数）、`class_id`（班级编号）。还有一个班级表 `class`，包含以下字段：`id`（班级编号）、`name`（班级名称）。**
+
+**请你编写一个 SQL 查询，使用子查询的方式来获取存在对应班级的学生的所有数据，返回学生姓名（`name`）、分数（`score`）、班级编号（`class_id`）字段。**
+
+```sql
+select name, score, class_id 
+from student 
+where class_id in (
+     select distinct id 
+     from class
+);
+```
+
 
