@@ -616,12 +616,98 @@ LEFT OUTER JOIN class c ON s.class_id=c.id;
 **请你编写一个 SQL 查询，使用子查询的方式来获取存在对应班级的学生的所有数据，返回学生姓名（`name`）、分数（`score`）、班级编号（`class_id`）字段。**
 
 ```sql
-select name, score, class_id 
-from student 
-where class_id in (
-     select distinct id 
-     from class
+SELECT s.name, s.score, s.class_id 
+FROM student s
+WHERE s.class_id IN (
+     SELECT c.id 
+     FROM class c
 );
+```
+
+
+
+##### 5.子查询-EXITS:
+
+<mark>:子查询中的一种特殊类型是 "exists" 子查询，用于检查主查询的结果集是否存在满足条件的记录，它返回布尔值（True 或 False），而不返回实际的数据</mark>
+
+**例：**
+
+**假设有一个学生表 `student`，包含以下字段：`id`（学号）、`name`（姓名）、`age`（年龄）、`score`（分数）、`class_id`（班级编号）。还有一个班级表 `class`，包含以下字段：`id`（班级编号）、`name`（班级名称）。**
+
+**请你编写一个 SQL 查询，使用 exists 子查询的方式来获取 不存在对应班级的 学生的所有数据，返回学生姓名（`name`）、年龄（`age`）、班级编号（`class_id`）字段。**
+
+```sql
+SELECT s.name,s.age,s.class_id
+FROM student s
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM class c
+    WHERE c.id=s.class_id
+);
+```
+
+
+
+##### 6.组合查询：
+
+1. <mark>UNION 操作：它用于将两个或多个查询的结果集合并， **并去除重复的行** 。即如果两个查询的结果有相同的行，则只保留一行。</mark>
+
+2. <mark>UNION ALL 操作：它也用于将两个或多个查询的结果集合并， **但不去除重复的行** 。即如果两个查询的结果有相同的行，则全部保留。</mark>
+
+**例：**
+
+**假设有一个学生表 `student`，包含以下字段：`id`（学号）、`name`（姓名）、`age`（年龄）、`score`（分数）、`class_id`（班级编号）。还有一个新学生表 `student_new`，包含的字段和学生表完全一致。**
+
+**请编写一条 SQL 语句，获取所有学生表和新学生表的学生姓名（`name`）、年龄（`age`）、分数（`score`）、班级编号（`class_id`）字段，要求保留重复的学生记录。**
+
+```sql
+SELECT s.name,s.age,s.score,s.class_id
+FROM student s
+UNION ALL
+SELECT sn.name,sn.age,sn.score,sn.class_id
+FROM student_new sn;
+```
+
+
+
+##### 7.开窗函数-sum over：
+
+<mark>开窗函数是一种强大的查询工具，它允许我们在查询中进行对分组数据进行计算、 **同时保留原始行的详细信息** 。</mark>
+
+```sql
+SUM(计算字段名) OVER (PARTITION BY 分组字段名)
+```
+
+**例：**
+
+**假设有一个学生表 `student`，包含以下字段：`id`（学号）、`name`（姓名）、`age`（年龄）、`score`（分数）、`class_id`（班级编号）。**
+
+**请你编写一个 SQL 查询，返回每个学生的详细信息（字段顺序和原始表的字段顺序一致），并计算每个班级的学生平均分（class_avg_score）。**
+
+```sql
+SELECT id, name, age, score, class_id,
+ AVG(score) OVER (PARTITION BY class_id) AS class_avg_score 
+ FROM student;
+```
+
+<mark>开窗函数可以与聚合函数（如 SUM、AVG、COUNT 等）结合使用，但与普通聚合函数不同，开窗函数不会导致结果集的行数减少。</mark>
+
+
+
+8.开窗函数-sum over order by
+
+<mark>sum over order by，可以实现同组内数据的 **累加求和** 。</mark>
+
+**例：**
+
+**假设有一个学生表 `student`，包含以下字段：`id`（学号）、`name`（姓名）、`age`（年龄）、`score`（分数）、`class_id`（班级编号）。**
+
+**请你编写一个 SQL 查询，返回每个学生的详细信息（字段顺序和原始表的字段顺序一致），并且按照分数升序的方式累加计算每个班级的学生总分（class_sum_score）。**
+
+```sql
+SELECT id, name, age, score, class_id, 
+SUM(score) OVER (PARTITION BY class_id ORDER BY score ASC) AS class_sum_score 
+FROM student;
 ```
 
 
