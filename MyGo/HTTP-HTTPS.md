@@ -342,3 +342,334 @@ BASIC 认证（基本认证）是从HTTP/1. 1 就定义的认证方式，是Web�
 　**<mark>　步骤 3：</mark>接收到包含首部字段 Authorization 请求的服务器，会确认认证信息的正确性。认证通过后则返回包含 Request-URI 资源的响应。并且这时会在首部字段 Authentication-Info 写入一些认证成功的相关信息。（不过我下面的例子没有去写这个Authentication-Info，而是直接返回的数据。因为我实在session里缓存的认证结果）。**
 
 
+
+补充：
+
+![](file:///C:/Users/%E6%99%93/Pictures/Saved%20Pictures/QQ20240805-105451.png)
+
+
+
+#### 3.OAuth授权认证(/'əu 'ɔːθ/):
+
+##### 1.通俗理解：
+
+[OAuth 2.0 的一个简单解释 - 阮一峰的网络日志 (ruanyifeng.com)](https://www.ruanyifeng.com/blog/2019/04/oauth_design.html<mark>)
+
+<mark>：这里用了一个小区-外卖员的例子</mark>
+
+<mark>**简单说，OAuth 就是一种授权机制。数据的所有者告诉系统，同意授权第三方应用进入系统，获取这些数据。系统从而产生一个短期的进入令牌（token），用来代替密码，供第三方应用使用。**</mark>
+
+
+
+##### 2.令牌与密码：
+
+<mark>令牌（token）与密码（password）的作用是一样的，都可以进入系统，但是有三点差异。</mark>
+
+**（1）令牌是短期的，到期会自动失效，用户自己无法修改。密码一般长期有效，用户不修改，就不会发生变化。**
+
+**（2）令牌可以被数据所有者撤销，会立即失效。以上例而言，屋主可以随时取消快递员的令牌。密码一般不允许被他人撤销。**
+
+**（3）令牌有权限范围（scope），比如只能进小区的二号门。对于网络服务来说，只读令牌就比读写令牌更安全。密码一般是完整权限。**
+
+
+
+<mark>ps：OAuth是什么，可以去看RFC 6749文件，这里有几句话...........</mark>
+
+> <mark>OAuth 引入了一个授权层，用来分离两种不同的角色：客户端和资源所有者。......资源所有者同意以后，资源服务器可以向客户端颁发令牌。客户端通过令牌，去请求数据。</mark>
+
+这段话的意思就是，**OAuth 的核心就是向第三方应用颁发令牌**。然后，RFC 6749 接着写道：
+
+> <mark>（由于互联网有多种场景，）本标准定义了获得令牌的四种授权方式（authorization grant ）。</mark>
+
+也就是说，**OAuth 2.0 规定了四种获得令牌的流程。你可以选择最适合自己的那一种，向第三方应用颁发令牌**。下面就是这四种授权方式。
+
+> * <mark>授权码（authorization-code）</mark>
+> * <mark>隐藏式（implicit）</mark>
+> * <mark>密码式（password）：</mark>
+> * <mark>客户端凭证（client credentials）</mark>
+
+注意，不管哪一种授权方式，第三方应用申请令牌之前，都必须先到系统备案，说明自己的身份，然后会拿到两个身份识别码：客户端 ID（client ID）和客户端密钥（client secret）。这是为了防止令牌被滥用，没有备案过的第三方应用，是不会拿到令牌的。
+
+<mark>：四种授权模式，可以查看[OAuth 2.0 授权认证详解-CSDN博客](https://blog.csdn.net/fuhanghang/article/details/131394196)和[OAuth 2.0 的四种方式 - 阮一峰的网络日志 (ruanyifeng.com)](https://www.ruanyifeng.com/blog/2019/04/oauth-grant-types.html)；</mark>
+
+<mark>ps：我就学个通用的授权码模式^__^</mark>
+
+
+
+##### 3.授权码模式：
+
+**授权码模式（authorization code）是功能最完整、流程最严密安全的授权模式。它的特点就是<u>通过客户端的<strong>后台服务器</strong>，与"服务提供商"的认证服务器进行互动。</u>**
+
+**（这种方式适用于那些有后端的 Web 应用。<u>授权码通过前端传送，令牌则是储存在后端</u>，而且所有与资源服务器的通信都在后端完成。这样的前后端分离，可以避免令牌泄漏。）**
+
+![在这里插入图片描述](https://i-blog.csdnimg.cn/blog_migrate/13cfde787ac315805c9c65ec0b920a06.png)
+
+![](file:///C:/Users/%E6%99%93/Pictures/Saved%20Pictures/QQ%E6%88%AA%E5%9B%BE20240805140432.png)
+
+**<mark>授权码模式流程如下：</mark>**
+
+1）用户访问客户端，客户端将用户导向认证服务器。
+
+2）用户选择是否给予客户端授权。
+
+3）假设用户给予授权，认证服务器将用户导向客户端事先指定的"重定向URI"（redirection URI），同时附上一个授权码（每个用户的授权码不同）。
+
+4）客户端收到授权码，附上早先的"重定向URI"，向认证服务器申请令牌。这一步是在客户端的 **后台服务器** 上完成的，对用户不可见。
+
+5）认证服务器核对了授权码和重定向URI，确认无误后，向客户端发送访问令牌（access token）和更新令牌（refresh token）。
+
+<mark>*从上述的流程描述可知，只有第 2 步需要用户进行授权操作，之后的流程都是在客户端的后台和认证服务器后台之前进行"静默"操作，对于用户来说是无感知的。*</mark>
+
+
+
+##### 4.授权码模式流程详解：
+
+第 1 步骤中，客户端申请认证的URI，包含以下参数：
+
+* `response_type`：表示授权类型，**必选项**，此处的值固定为"code"
+* `client_id`：表示客户端的ID，**必选项**
+* `redirect_uri`：表示重定向URI，可选项
+* `scope`：表示申请的权限范围，可选项
+* `state`：表示客户端的当前状态，可以指定任意值，认证服务器会原封不动地返回这个值。
+
+**示例**
+
+A 网站提供一个链接，用户点击后就会跳转到 B 网站，授权用户数据给 A 网站使用。下面就是 A 网站跳转 B 网站的一个示意链接：
+
+```http
+https://b.com/oauth/authorize?response_type=code&client_id=CLIENT_ID&redirect_uri=CALLBACK_URL&scope=read
+```
+
+上面 URL 中：
+
+<mark>`response_type`</mark>参数表示要求返回授权码（`code`）；
+
+<mark><code>client_id</code></mark>参数让 B 网站知道是谁在请求；
+
+<mark>redirect_uri</mark>参数是 B 网站接受或拒绝请求后的跳转网址；
+
+<mark>scope</mark>参数表示要求的授权范围（这里是只读）。
+
+
+
+**第 2 步骤**
+
+第 2 步骤中，<u>用户跳转后，</u><u>B 网站会要求用户登录，然后询问是否同意给予 A 网站授权</u>。
+
+
+
+**第 3 步骤**
+
+**参数说明**
+
+第 3 步骤中，服务器回应客户端的URI，包含以下参数：
+
+* `code`：表示授权码，**必选项**。该码的有效期应该很短，<u>通常设为10分钟，客户端只能使用该码一次，否则会被授权服务器拒绝。</u>该码与客户端ID和重定向URI，是一一对应关系。
+* `state`：如果客户端的请求中包含这个参数，认证服务器的回应也必须一模一样包含这个参数。
+
+**示例**
+
+在第 2 步骤用户表示同意之后，这时 B 网站就会跳回`redirect_uri`参数指定的网址。跳转时，会传回一个授权码，就像下面这样。
+
+```http
+https://a.com/callback?code=AUTHORIZATION_CODE
+```
+
+上面 URL 中，`code`参数就是授权码。
+
+
+
+**第 4 步骤**
+
+**参数说明**
+
+第 4 步骤中，客户端向认证服务器申请令牌的HTTP请求，包含以下参数：
+
+* `grant_type`：表示使用的授权模式，**必选项**，此处的值固定为"authorization_code"。
+* `code`：表示上一步获得的授权码，**必选项**。
+* `redirect_uri`：表示重定向URI，**必选项**，且必须与A步骤中的该参数值保持一致。
+* `client_id`：表示客户端ID，**必选项**。
+
+**示例**
+
+在第 3 步骤中，A 网站拿到授权码以后，就可以在后端，向 B 网站请求令牌。
+
+```http
+https://b.com/oauth/token? client_id=CLIENT_ID& client_secret=CLIENT_SECRET& grant_type=authorization_code& code=AUTHORIZATION_CODE& redirect_uri=CALLBACK_URL
+```
+
+上面 URL 中：
+
+<mark>`client_id`</mark>参数和<mark>`client_secret`</mark>参数用来让 B 确认 A 的身份（<mark>`client_secret`</mark>参数是保密的，因此只能在后端发请求）；
+
+<mark>`grant_type`</mark>参数的值是<mark>`AUTHORIZATION_CODE`</mark>，表示采用的授权方式是授权码；
+
+<mark>`code`</mark>参数是上一步拿到的授权码；
+
+<mark>`redirect_uri`</mark>参数是令牌颁发后的回调网址。
+
+
+
+**第 5 步骤**
+
+**参数说明**
+
+第 5 步骤中，认证服务器发送的HTTP回复，包含以下参数：
+
+* `access_token`：表示访问令牌，必选项。
+* `token_type`：表示令牌类型，该值大小写不敏感，必选项，可以是bearer类型或mac类型。
+* `expires_in`：表示过期时间，单位为秒。如果省略该参数，必须其他方式设置过期时间。
+* `refresh_token`：表示更新令牌，用来获取下一次的访问令牌，可选项。
+* `scope`：表示权限范围，如果与客户端申请的范围一致，此项可省略。
+
+**示例**
+
+第 4 步骤中，B 网站收到请求以后，就会颁发令牌。具体做法是向`redirect_uri`指定的网址，发送一段 JSON 数据：
+
+```http
+HTTP/1.1 200 OK
+Content-Type: application/json;charset=UTF-8
+Cache-Control: no-store
+Pragma: no-cache
+
+{"access_token":"ACCESS_TOKEN","token_type":"bearer","expires_in":2592000,"refresh_token":"REFRESH_TOKEN","scope":"read","uid":100101,"info":{...}
+} 
+```
+
+上面 JSON 数据中，`access_token`字段就是令牌，A 网站在后端拿到了。注意：HTTP头信息中明确指定不得缓存。****
+
+**：其他模式-哔哩哔哩IT小齐-理解**
+
+
+
+
+
+### 三.JWT跨域认证：
+
+
+
+##### 1.jwt原理：
+
+     JWT 的原理是，服务器认证以后，生成一个 JSON 对象，发回给用户，就像下面这样。
+
+> ```json
+> {
+>   "姓名": "张三",
+>   "角色": "管理员",
+>   "到期时间": "2018年7月1日0点0分"
+> }
+> ```
+
+以后，用户与服务端通信的时候，都要发回这个 JSON 对象。服务器完全只靠这个对象认定用户身份。为了防止用户篡改数据，服务器在生成这个对象的时候，会加上签名
+
+服务器就不保存任何 session 数据了，也就是说，服务器变成无状态了，从而比较容易实现扩展。
+
+
+
+##### 2.jwt数据结构：
+
+**实际的 JWT 大概就像下面这样。**
+
+![](https://cdn.beekka.com/blogimg/asset/201807/bg2018072304.jpg)
+
+<mark>它是一个很长的字符串，中间用点（`.`）分隔成三个部分。注意，JWT 内部是没有换行的，这里只是为了便于展示，将它写成了几行。</mark>
+
+JWT 的三个部分依次如下。
+
+> * <mark>Header（头部）</mark>
+> * <mark>Payload（负载）</mark>
+> * <mark>Signature（签名）</mark>
+
+写成一行，就是下面的样子。
+
+> ```http
+> Header.Payload.Signature
+> ```
+
+![](https://cdn.beekka.com/blogimg/asset/201807/bg2018072303.jpg)
+
+
+
+###### 2.1 Header
+
+Header 部分是一个 JSON 对象，描述 JWT 的元数据，通常是下面的样子。
+
+> ```json
+> {
+>   "alg": "HS256",
+>   "typ": "JWT"
+> }
+> ```
+
+上面代码中，`alg`属性表示签名的算法（algorithm），默认是 HMAC SHA256（写成 HS256）；`typ`属性表示这个令牌（token）的类型（type），JWT 令牌统一写为`JWT`。
+
+最后，将上面的 JSON 对象使用 Base64URL 算法（详见后文）转成字符串。
+
+
+
+###### 2.2 Payload
+
+Payload 部分也是一个 JSON 对象，用来存放实际需要传递的数据。JWT 规定了7个官方字段，供选用。
+
+> * <mark>iss (issuer)：签发人</mark>
+> * <mark>exp (expiration time)：过期时间</mark>
+> * <mark>sub (subject)：主题</mark>
+> * <mark>aud (audience)：受众</mark>
+> * <mark>nbf (Not Before)：生效时间</mark>
+> * <mark>iat (Issued At)：签发时间</mark>
+> * <mark>jti (JWT ID)：编号</mark>
+
+除了官方字段，你还可以在这个部分定义私有字段，下面就是一个例子。
+
+> ```json
+> {
+>   "sub": "1234567890",
+>   "name": "John Doe",
+>   "admin": true
+> }
+> ```
+
+<mark>注意，JWT 默认是不加密的，任何人都可以读到，所以不要把秘密信息放在这个部分。</mark>
+
+这个 JSON 对象也要使用 Base64URL 算法转成字符串。
+
+
+
+###### 2.3 Signature
+
+Signature 部分是对前两部分的签名，防止数据篡改。
+
+首先，需要指定一个密钥（secret）。这个密钥只有服务器才知道，不能泄露给用户。然后，使用 Header 里面指定的签名算法（默认是 HMAC SHA256），按照下面的公式产生签名。
+
+> ```http
+> HMACSHA256(
+>   base64UrlEncode(header) + "." +
+>   base64UrlEncode(payload),
+>   secret)
+> ```
+
+算出签名以后，把 Header、Payload、Signature 三个部分拼成一个字符串，每个部分之间用"点"（`.`）分隔，就可以返回给用户。
+
+
+
+###### 2.4 Base64URL
+
+前面提到，Header 和 Payload 串型化的算法是 Base64URL。这个算法跟 Base64 算法基本类似，但有一些小的不同。
+
+JWT 作为一个令牌（token），有些场合可能会放到 URL（比如 api.example.com/?token=xxx）。Base64 有三个字符`+`、`/`和`=`，在 URL 里面有特殊含义，所以要被替换掉：`=`被省略、`+`替换成`-`，`/`替换成`_` 。这就是 Base64URL 算法。
+
+
+
+#### 3、JWT 的使用方式
+
+客户端收到服务器返回的 JWT，可以储存在 Cookie 里面，也可以储存在 localStorage。
+
+此后，客户端每次与服务器通信，都要带上这个 JWT。你可以把它放在 Cookie 里面自动发送，但是这样不能跨域，所以更好的做法是放在 HTTP 请求的头信息`Authorization`字段里面。
+
+> ```http
+> Authorization: Bearer <token>
+> ```
+
+另一种做法是，跨域的时候，JWT 就放在 POST 请求的数据体里面。
+
+
